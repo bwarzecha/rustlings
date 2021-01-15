@@ -11,8 +11,6 @@ struct Color {
     blue: u8,
 }
 
-// I AM NOT DONE
-
 // Your task is to complete this implementation
 // and return an Ok result of inner type Color.
 // You need create implementation for a tuple of three integer,
@@ -22,22 +20,46 @@ struct Color {
 // but slice implementation need check slice length!
 // Also note, that chunk of correct rgb color must be integer in range 0..=255.
 
+fn to_u8(input: (i16, i16, i16)) -> Result<(u8,u8,u8), String> {
+
+        let red_result = u8::try_from(input.0);
+        let green_result = u8::try_from(input.1);
+        let blue_result = u8::try_from(input.2);
+        match (red_result, green_result, blue_result){
+            (Ok(red), Ok(green), Ok(blue)) => Ok((
+                red,
+                green,
+                blue)),
+            _ => Err(String::from("Unable to cat i16 to u8"))
+        }
+}
 // Tuple implementation
 impl TryFrom<(i16, i16, i16)> for Color {
     type Error = String;
-    fn try_from(tuple: (i16, i16, i16)) -> Result<Self, Self::Error> {}
+    fn try_from(tuple: (i16, i16, i16)) -> Result<Self, Self::Error> {
+        to_u8(tuple).map(|(red,green,blue)| Color{red, green, blue})
+    }
 }
 
 // Array implementation
 impl TryFrom<[i16; 3]> for Color {
     type Error = String;
-    fn try_from(arr: [i16; 3]) -> Result<Self, Self::Error> {}
+    fn try_from(arr: [i16; 3]) -> Result<Self, Self::Error> {
+        to_u8((arr[0], arr[1],arr[2])).map(|(red,green,blue)| Color{red, green, blue})
+    }
 }
 
 // Slice implementation
 impl TryFrom<&[i16]> for Color {
     type Error = String;
-    fn try_from(slice: &[i16]) -> Result<Self, Self::Error> {}
+    fn try_from(slice: &[i16]) -> Result<Self, Self::Error> {
+        if slice.len() != 3{
+            Err("Must have exactly 3 elements".to_string())
+        } else {
+        to_u8((slice[0], slice[1],slice[2])).map(|(red,green,blue)| Color{red, green, blue})
+        }
+
+    }
 }
 
 fn main() {
@@ -88,17 +110,17 @@ mod tests {
     }
     #[test]
     fn test_array_out_of_range_positive() {
-        let c: Color = [1000, 10000, 256].try_into();
+        let c: Result<Color, String> = [1000, 10000, 256].try_into();
         assert!(c.is_err());
     }
     #[test]
     fn test_array_out_of_range_negative() {
-        let c: Color = [-10, -256, -1].try_into();
+        let c: Result<Color, String> = [-10, -256, -1].try_into();
         assert!(c.is_err());
     }
     #[test]
     fn test_array_sum() {
-        let c: Color = [-1, 255, 255].try_into();
+        let c: Result<Color, String> = [-1, 255, 255].try_into();
         assert!(c.is_err());
     }
     #[test]
